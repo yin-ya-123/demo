@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oracle用户权限管理工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-dark: #0d47a1;
+            --secondary: #00c853;
+            --dark: #0f1621;
+            --darker: #090d15;
+            --light: #f5f8fa;
+            --gray: #2a3a52;
+            --border: rgba(255, 255, 255, 0.1);
+            --glow: 0 0 15px rgba(26, 115, 232, 0.5);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        /* 左侧面板 - 表单区域 */
+        .left-panel {
+            flex: 1;
+            padding: 30px;
+            background: rgba(15, 22, 33, 0.9);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        
+        /* 右侧面板 - SQL预览 */
+        .right-panel {
+            flex: 1;
+            padding: 30px;
+            background: linear-gradient(45deg, rgba(13, 71, 161, 0.2), rgba(15, 22, 33, 0.9));
+            position: relative;
+            overflow-y: auto;
+        }
+        
+        .panel-title {
+            font-size: 24px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel-title i {
+            color: var(--primary);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #a0b3d6;
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 14px 15px;
+            background: rgba(20, 30, 48, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--light);
+            font-size: 16px;
+            transition: var(--transition);
+            outline: none;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: var(--glow);
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(20, 30, 48, 0.5);
+            border-radius: 6px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .checkbox-item:hover {
+            background: rgba(26, 115, 232, 0.2);
+        }
+        
+        .checkbox-item input {
+            width: auto;
+        }
+        
+        .permissions-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .permissions-column {
+            flex: 1;
+            background: rgba(20, 30, 48, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border);
+        }
+        
+        .permissions-column h3 {
+            margin-bottom: 15px;
+            color: var(--secondary);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* SQL预览样式 */
+        .sql-preview {
+            background: rgba(10, 15, 25, 0.8);
+            border-radius: 8px;
+            padding: 25px;
+            border-left: 4px solid var(--primary);
+            font-family: 'Consolas', 'Courier New', monospace;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            max-height: 75vh;
+            overflow-y: auto;
+            box-shadow: var(--glow);
+        }
+        
+        .sql-keyword {
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+        
+        .sql-object {
+            color: #ffb74d;
+        }
+        
+        .sql-comment {
+            color: #81c784;
+        }
+        
+        .sql-string {
+            color: #f48fb1;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--glow);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(26, 115, 232, 0.1);
+        }
+        
+        .tech-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(26, 115, 232, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26, 115, 232, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        .tech-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(transparent, var(--primary), transparent);
+            width: 1px;
+            left: 20%;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        
+        .tech-line:nth-child(2) {
+            left: 50%;
+        }
+        
+        .tech-line:nth-child(3) {
+            left: 80%;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: var(--primary);
+            border-radius: 6px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .permissions-container {
+                flex-direction: column;
+            }
+        }
+        
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 22, 33, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧面板：用户输入表单 -->
+        <div class="left-panel">
+            <h1 class="panel-title"><i class="fas fa-database"></i> Oracle用户权限管理工具</h1>
+            
+            <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> 用户名</label>
+                <input type="text" id="username" placeholder="输入新用户名...">
+            </div>
+            
+            <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> 密码</label>
+                <input type="password" id="password" placeholder="设置用户密码...">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-key"></i> 系统权限</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="sys-permission" value="CREATE SESSION">
+                        CREATE SESSION
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="sys-permission" value="CREATE TABLE" checked>
+                        CREATE TABLE
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="sys-permission" value="CREATE VIEW">
+                        CREATE VIEW
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="sys-permission" value="CREATE PROCEDURE">
+                        CREATE PROCEDURE
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="sys-permission" value="CREATE SEQUENCE">
+                        CREATE SEQUENCE
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="sys-permission" value="CREATE TRIGGER">
+                        CREATE TRIGGER
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="sys-permission" value="UNLIMITED TABLESPACE">
+                        UNLIMITED TABLESPACE
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-table"></i> 对象权限</label>
+                <div class="permissions-container">
+                    <div class="permissions-column">
+                        <h3><i class="fas fa-cubes"></i> 表/视图</h3>
+                        <textarea id="tables" rows="5" placeholder="输入表或视图名称（每行一个）&#10;例如：&#10;employees&#10;departments&#10;projects"></textarea>
+                    </div>
+                    
+                    <div class="permissions-column">
+                        <h3><i class="fas fa-check-circle"></i> 权限类型</h3>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="obj-permission" value="SELECT" checked>
+                            SELECT
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="obj-permission" value="INSERT">
+                            INSERT
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="obj-permission" value="UPDATE">
+                            UPDATE
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="obj-permission" value="DELETE">
+                            DELETE
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="obj-permission" value="REFERENCES">
+                            REFERENCES
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-primary" id="generateBtn">
+                    <i class="fas fa-code"></i> 生成SQL语句
+                </button>
+                <button class="btn btn-secondary" id="resetBtn">
+                    <i class="fas fa-redo"></i> 重置表单
+                </button>
+            </div>
+        </div>
+        
+        <!-- 右侧面板：SQL预览 -->
+        <div class="right-panel">
+            <h1 class="panel-title"><i class="fas fa-terminal"></i> SQL生成预览</h1>
+            <div class="sql-preview" id="sqlPreview">
+-- 生成的SQL语句将显示在这里
+-- 请先在左侧填写用户信息并选择权限
+-- 点击"生成SQL语句"按钮开始
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-primary" id="copyBtn">
+                    <i class="fas fa-copy"></i> 复制SQL
+                </button>
+                <button class="btn btn-secondary" id="saveBtn">
+                    <i class="fas fa-download"></i> 保存为文件
+                </button>
+            </div>
+            
+            <!-- 科技背景元素 -->
+            <div class="tech-grid"></div>
+            <div class="tech-line"></div>
+            <div class="tech-line"></div>
+            <div class="tech-line"></div>
+        </div>
+    </div>
+    
+    <!-- 通知 -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i> SQL已成功复制到剪贴板！
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const tablesInput = document.getElementById('tables');
+            const sysPermissions = document.querySelectorAll('.sys-permission');
+            const objPermissions = document.querySelectorAll('.obj-permission');
+            const generateBtn = document.getElementById('generateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const sqlPreview = document.getElementById('sqlPreview');
+            const notification = document.getElementById('notification');
+            
+            // 生成SQL语句
+            generateBtn.addEventListener('click', generateSQL);
+            
+            // 重置表单
+            resetBtn.addEventListener('click', function() {
+                usernameInput.value = '';
+                passwordInput.value = '';
+                tablesInput.value = '';
+                
+                sysPermissions.forEach(permission => {
+                    permission.checked = permission.value === 'CREATE TABLE';
+                });
+                
+                objPermissions.forEach(permission => {
+                    permission.checked = permission.value === 'SELECT';
+                });
+                
+                sqlPreview.textContent = `-- 生成的SQL语句将显示在这里
+-- 请先在左侧填写用户信息并选择权限
+-- 点击"生成SQL语句"按钮开始`;
+            });
+            
+            // 复制SQL到剪贴板
+            copyBtn.addEventListener('click', function() {
+                const text = sqlPreview.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification('SQL已成功复制到剪贴板！');
+                });
+            });
+            
+            // 保存SQL为文件
+            saveBtn.addEventListener('click', function() {
+                const text = sqlPreview.textContent;
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'oracle_user_creation.sql';
+                document.body.appendChild(a);
+                a.click();
+                
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showNotification('SQL文件已成功下载！');
+                }, 100);
+            });
+            
+            // 生成SQL函数
+            function generateSQL() {
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                if (!username || !password) {
+                    showNotification('请填写用户名和密码！', true);
+                    return;
+                }
+                
+                // 获取系统权限
+                const selectedSysPermissions = [];
+                sysPermissions.forEach(permission => {
+                    if (permission.checked) {
+                        selectedSysPermissions.push(permission.value);
+                    }
+                });
+                
+                // 获取对象权限
+                const selectedObjPermissions = [];
+                objPermissions.forEach(permission => {
+                    if (permission.checked) {
+                        selectedObjPermissions.push(permission.value);
+                    }
+                });
+                
+                // 获取表/视图
+                const tables = tablesInput.value.split('\n')
+                    .map(table => table.trim())
+                    .filter(table => table.length > 0);
+                
+                // 构建SQL语句
+                let sql = `-- 创建用户及权限分配\n`;
+                sql += `-- 生成时间: ${new Date().toLocaleString()}\n\n`;
+                
+                // 创建用户
+                sql += `-- 创建用户\n`;
+                sql += `CREATE USER ${username} IDENTIFIED BY ${password};\n\n`;
+                
+                // 系统权限
+                if (selectedSysPermissions.length > 0) {
+                    sql += `-- 授予系统权限\n`;
+                    sql += `GRANT ${selectedSysPermissions.join(', ')} TO ${username};\n\n`;
+                }
+                
+                // 对象权限
+                if (tables.length > 0 && selectedObjPermissions.length > 0) {
+                    sql += `-- 授予对象权限\n`;
+                    tables.forEach(table => {
+                        sql += `GRANT ${selectedObjPermissions.join(', ')} ON ${table} TO ${username};\n`;
+                    });
+                }
+                
+                // 高亮显示SQL
+                sqlPreview.innerHTML = highlightSQL(sql);
+            }
+            
+            // SQL语法高亮
+            function highlightSQL(sql) {
+                const keywords = [
+                    'CREATE', 'USER', 'IDENTIFIED', 'BY', 'GRANT', 'TO', 'ON', 'SELECT', 
+                    'INSERT', 'UPDATE', 'DELETE', 'REFERENCES', 'SESSION', 'TABLE', 'VIEW', 
+                    'PROCEDURE', 'SEQUENCE', 'TRIGGER', 'TABLESPACE', 'UNLIMITED'
+                ];
+                
+                return sql
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/(".*?")/g, '<span class="sql-string">$1</span>')
+                    .replace(/--(.*)$/gm, '<span class="sql-comment">--$1</span>')
+                    .replace(new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi'), 
+                             '<span class="sql-keyword">$1</span>')
+                    .replace(/\b([A-Z_]+)\b/g, '<span class="sql-object">$1</span>');
+            }
+            
+            // 显示通知
+            function showNotification(message, isError = false) {
+                notification.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+                notification.style.background = isError ? '#f44336' : '#1a73e8';
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // 初始生成SQL预览
+            const initialSQL = `-- Oracle用户创建工具
+-- 使用此工具生成创建用户和分配权限的SQL语句
+-- 请填写左侧表单并点击"生成SQL语句"按钮
+
+-- 功能说明:
+-- 1. 创建新用户
+-- 2. 分配系统权限
+-- 3. 分配表/视图的访问权限
+-- 4. 自动生成完整的SQL脚本`;
+            sqlPreview.innerHTML = highlightSQL(initialSQL);
+        });
+    </script>
+</body>
+</html>
