@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oracle用户授权工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            max-width: 1600px;
+            margin: 0 auto;
+            height: calc(100vh - 40px);
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(94, 234, 212, 0.2);
+        }
+        
+        /* 左侧表单区域 */
+        .form-section {
+            flex: 1;
+            padding: 40px;
+            border-right: 1px solid rgba(94, 234, 212, 0.1);
+            overflow-y: auto;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #38bdf8, #22d3ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            max-width: 600px;
+        }
+        
+        .card {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(94, 234, 212, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            color: #38bdf8;
+        }
+        
+        .card-title i {
+            margin-right: 12px;
+            font-size: 1.6rem;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(94, 234, 212, 0.3);
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2338bdf8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .hint {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+        
+        .btn-generate {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(90deg, #0ea5e9, #06b6d4);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
+        }
+        
+        .btn-generate:hover {
+            background: linear-gradient(90deg, #0284c7, #0891b2);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        .btn-generate:active {
+            transform: translateY(0);
+        }
+        
+        /* 右侧SQL区域 */
+        .sql-section {
+            flex: 1;
+            padding: 40px;
+            background: rgba(15, 23, 42, 0.8);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sql-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .sql-header h2 {
+            font-size: 1.8rem;
+            color: #22d3ee;
+        }
+        
+        .sql-container {
+            flex: 1;
+            background: rgba(2, 6, 23, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            overflow-y: auto;
+            border: 1px solid rgba(94, 234, 212, 0.1);
+            position: relative;
+        }
+        
+        .sql-code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .sql-placeholder {
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .btn-copy {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(94, 234, 212, 0.3);
+            color: #38bdf8;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-copy:hover {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: #38bdf8;
+        }
+        
+        /* 动画效果 */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .form-section {
+                border-right: none;
+                border-bottom: 1px solid rgba(94, 234, 212, 0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧表单区域 -->
+        <section class="form-section">
+            <div class="header">
+                <h1>Oracle用户授权工具</h1>
+                <p>创建数据库用户并分配权限，自动生成SQL脚本</p>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-user-circle"></i> 用户信息</h2>
+                
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" placeholder="输入新用户名 (例: APP_USER)">
+                    <p class="hint">用户名需以字母开头，可包含字母、数字和特殊字符 _ $ #</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" placeholder="设置强密码">
+                    <p class="hint">密码需包含大小写字母、数字和特殊字符，长度至少12位</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm-password">确认密码</label>
+                    <input type="password" id="confirm-password" placeholder="再次输入密码">
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-key"></i> 权限设置</h2>
+                
+                <div class="form-group">
+                    <label for="permission">选择授权权限</label>
+                    <select id="permission">
+                        <option value="connect">CONNECT (仅连接权限)</option>
+                        <option value="select">SELECT (查询权限)</option>
+                        <option value="crud">CRUD (增删改查权限)</option>
+                        <option value="dba">DBA (管理员权限)</option>
+                        <option value="custom">自定义权限</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tables">表/视图名称</label>
+                    <textarea id="tables" placeholder="输入要授权的表或视图名称，每行一个 (例: employees, departments)"></textarea>
+                    <p class="hint">输入需要授权的表或视图名称，多个请换行输入</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-cogs"></i> 高级设置</h2>
+                
+                <div class="form-group">
+                    <label for="tablespace">默认表空间</label>
+                    <input type="text" id="tablespace" placeholder="(可选) 例: USERS" value="USERS">
+                </div>
+                
+                <div class="form-group">
+                    <label for="quota">表空间配额</label>
+                    <input type="text" id="quota" placeholder="(可选) 例: 100M" value="UNLIMITED">
+                </div>
+            </div>
+            
+            <button id="generate-btn" class="btn-generate pulse">
+                <i class="fas fa-bolt"></i> 生成SQL脚本
+            </button>
+        </section>
+        
+        <!-- 右侧SQL区域 -->
+        <section class="sql-section">
+            <div class="sql-header">
+                <h2>生成的SQL语句</h2>
+                <button id="copy-btn" class="btn-copy">
+                    <i class="fas fa-copy"></i> 复制到剪贴板
+                </button>
+            </div>
+            
+            <div class="sql-container">
+                <pre class="sql-code" id="sql-output">
+<span class="sql-placeholder">// 填写左侧表单后点击"生成SQL脚本"按钮</span>
+<span class="sql-placeholder">// 将自动在此处生成创建用户和授权的SQL语句</span>
+                </pre>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generate-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const sqlOutput = document.getElementById('sql-output');
+            
+            // 生成SQL按钮点击事件
+            generateBtn.addEventListener('click', function() {
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                const permission = document.getElementById('permission').value;
+                const tables = document.getElementById('tables').value.trim();
+                const tablespace = document.getElementById('tablespace').value.trim() || 'USERS';
+                const quota = document.getElementById('quota').value.trim() || 'UNLIMITED';
+                
+                // 验证输入
+                if (!username) {
+                    alert('请输入用户名！');
+                    return;
+                }
+                
+                if (!password || password.length < 8) {
+                    alert('密码长度至少为8个字符！');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    alert('两次输入的密码不匹配！');
+                    return;
+                }
+                
+                // 生成SQL语句
+                let sql = `-- 创建Oracle用户 ${username}\n`;
+                sql += `CREATE USER ${username} IDENTIFIED BY "${password}"\n`;
+                sql += `DEFAULT TABLESPACE ${tablespace}\n`;
+                sql += `QUOTA ${quota} ON ${tablespace};\n\n`;
+                
+                sql += `-- 授予基本连接权限\n`;
+                sql += `GRANT CREATE SESSION TO ${username};\n\n`;
+                
+                // 根据权限类型生成不同的授权语句
+                switch(permission) {
+                    case 'connect':
+                        sql += `-- 仅授予连接权限\n`;
+                        break;
+                    case 'select':
+                        sql += `-- 授予查询权限\n`;
+                        if (tables) {
+                            const tableList = tables.split('\n');
+                            tableList.forEach(table => {
+                                if (table.trim()) {
+                                    sql += `GRANT SELECT ON ${table.trim()} TO ${username};\n`;
+                                }
+                            });
+                        } else {
+                            sql += `-- 未指定表或视图，请手动添加GRANT SELECT语句\n`;
+                        }
+                        break;
+                    case 'crud':
+                        sql += `-- 授予增删改查权限\n`;
+                        if (tables) {
+                            const tableList = tables.split('\n');
+                            tableList.forEach(table => {
+                                if (table.trim()) {
+                                    sql += `GRANT SELECT, INSERT, UPDATE, DELETE ON ${table.trim()} TO ${username};\n`;
+                                }
+                            });
+                        } else {
+                            sql += `-- 未指定表或视图，请手动添加CRUD授权语句\n`;
+                        }
+                        break;
+                    case 'dba':
+                        sql += `-- 授予DBA管理员权限\n`;
+                        sql += `GRANT DBA TO ${username};\n`;
+                        break;
+                    case 'custom':
+                        sql += `-- 自定义权限 (请手动添加授权语句)\n`;
+                        sql += `-- 例如: GRANT EXECUTE ON procedure_name TO ${username};\n`;
+                        break;
+                }
+                
+                sql += `\n-- 提交更改\nCOMMIT;`;
+                
+                // 显示生成的SQL
+                sqlOutput.textContent = sql;
+                
+                // 添加动画效果
+                generateBtn.classList.remove('pulse');
+                void generateBtn.offsetWidth; // 触发重绘
+                generateBtn.classList.add('pulse');
+            });
+            
+            // 复制按钮点击事件
+            copyBtn.addEventListener('click', function() {
+                const textArea = document.createElement('textarea');
+                textArea.value = sqlOutput.textContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // 显示复制成功反馈
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> 已复制!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
