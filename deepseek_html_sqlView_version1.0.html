@@ -3,81 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oracle视图生成器 | 科技版</title>
+    <title>Oracle视图生成器 | 专业版</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
         }
         
         :root {
-            --primary: #0ff;
-            --secondary: #0af;
-            --dark-bg: #0a0e17;
-            --darker-bg: #050a14;
-            --panel-bg: rgba(10, 20, 40, 0.7);
-            --text: #e0f7ff;
-            --border-glow: 0 0 10px rgba(0, 255, 255, 0.7);
+            --primary: #1e90ff;
+            --secondary: #00ced1;
+            --dark-bg: #0f172a;
+            --darker-bg: #0a0f1f;
+            --panel-bg: rgba(15, 25, 45, 0.9);
+            --text: #f0f9ff;
+            --border: rgba(30, 144, 255, 0.3);
+            --success: #00c9a7;
+            --warning: #ff9e44;
         }
         
         body {
-            background: var(--dark-bg);
+            background: linear-gradient(135deg, var(--darker-bg), var(--dark-bg));
             color: var(--text);
             min-height: 100vh;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        /* 粒子背景效果 */
-        #particles-js {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-        
-        .container {
-            display: flex;
-            min-height: 100vh;
+            overflow-x: hidden;
             padding: 20px;
-            gap: 20px;
-        }
-        
-        /* 左右面板通用样式 */
-        .panel {
-            background: var(--panel-bg);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: var(--border-glow);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            line-height: 1.6;
+        }
+        
+        /* 头部样式 */
+        .header {
+            text-align: center;
+            padding: 20px 0 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: rgba(240, 249, 255, 0.7);
+            line-height: 1.6;
+        }
+        
+        .features {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .feature {
+            background: rgba(30, 144, 255, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 0.95rem;
+        }
+        
+        /* 主容器 */
+        .container {
+            display: flex;
+            gap: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+        }
+        
+        /* 面板通用样式 */
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
         
         .panel::before {
             content: '';
             position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            border-radius: 17px;
-            background: linear-gradient(45deg, #00f7ff, #0a7aff, #00f7ff);
-            z-index: -1;
-            animation: border-glow 3s linear infinite;
-            background-size: 400%;
-        }
-        
-        @keyframes border-glow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
         }
         
         .panel-header {
@@ -85,16 +116,15 @@
             align-items: center;
             margin-bottom: 25px;
             padding-bottom: 15px;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(30, 144, 255, 0.2);
         }
         
         .panel-header h2 {
-            font-size: 1.8rem;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            font-size: 1.6rem;
+            color: var(--primary);
             font-weight: 600;
+            display: flex;
+            align-items: center;
         }
         
         .panel-header i {
@@ -118,15 +148,23 @@
             margin-bottom: 10px;
             font-size: 1.1rem;
             color: var(--primary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-group label i {
+            margin-right: 10px;
+            font-size: 1.1rem;
         }
         
         .input-group input,
         .input-group textarea {
             width: 100%;
-            padding: 14px;
+            padding: 14px 18px;
             border-radius: 8px;
-            background: rgba(5, 15, 30, 0.8);
-            border: 1px solid rgba(0, 200, 255, 0.3);
+            background: rgba(10, 20, 40, 0.7);
+            border: 1px solid var(--border);
             color: var(--text);
             font-size: 1rem;
             transition: all 0.3s ease;
@@ -136,20 +174,45 @@
         .input-group textarea:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+            background: rgba(15, 30, 60, 0.7);
+            box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.2);
+        }
+        
+        .input-group input::placeholder,
+        .input-group textarea::placeholder {
+            color: rgba(240, 249, 255, 0.4);
         }
         
         .input-group textarea {
-            min-height: 180px;
+            min-height: 200px;
             resize: vertical;
-            font-family: 'Courier New', monospace;
+            font-family: 'Consolas', 'Courier New', monospace;
+            line-height: 1.5;
+        }
+        
+        .options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .option-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .option-group label {
+            color: var(--text);
+            font-size: 0.95rem;
         }
         
         .generate-btn {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: var(--darker-bg);
+            color: #fff;
             border: none;
-            padding: 15px 30px;
+            padding: 16px 30px;
             font-size: 1.1rem;
             font-weight: 600;
             border-radius: 8px;
@@ -158,13 +221,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3);
         }
         
         .generate-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 144, 255, 0.4);
         }
         
         .generate-btn:active {
@@ -178,16 +242,17 @@
         }
         
         .result-container {
-            background: rgba(5, 15, 30, 0.8);
+            background: rgba(10, 20, 40, 0.7);
             border-radius: 8px;
-            border: 1px solid rgba(0, 200, 255, 0.3);
+            border: 1px solid var(--border);
             padding: 20px;
             height: 100%;
             overflow: auto;
-            font-family: 'Courier New', monospace;
+            font-family: 'Consolas', 'Courier New', monospace;
             font-size: 1rem;
-            line-height: 1.5;
+            line-height: 1.6;
             white-space: pre-wrap;
+            min-height: 300px;
         }
         
         .result-container::-webkit-scrollbar {
@@ -195,7 +260,7 @@
         }
         
         .result-container::-webkit-scrollbar-track {
-            background: rgba(5, 15, 30, 0.5);
+            background: rgba(10, 20, 40, 0.5);
         }
         
         .result-container::-webkit-scrollbar-thumb {
@@ -204,10 +269,17 @@
         }
         
         .result-placeholder {
-            color: rgba(224, 247, 255, 0.5);
+            color: rgba(240, 249, 255, 0.5);
             font-style: italic;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
         }
         
+        /* SQL 语法高亮 */
         .keyword {
             color: #ff79c6;
             font-weight: bold;
@@ -225,6 +297,10 @@
             color: #f1fa8c;
         }
         
+        .string {
+            color: #ffb86c;
+        }
+        
         /* 响应式设计 */
         @media (max-width: 1000px) {
             .container {
@@ -234,44 +310,103 @@
             .left-panel, .right-panel {
                 min-width: 100%;
             }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
         }
         
         .footer {
             text-align: center;
-            padding: 20px;
-            color: rgba(224, 247, 255, 0.6);
-            font-size: 0.9rem;
-            position: absolute;
-            bottom: 0;
+            padding: 30px 0 20px;
+            color: rgba(240, 249, 255, 0.6);
+            font-size: 0.95rem;
+            margin-top: 20px;
+        }
+        
+        /* 网格背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(30, 144, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 144, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+        }
+        
+        /* 提示信息 */
+        .info {
+            background: rgba(0, 201, 167, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .info i {
+            color: var(--success);
+            margin-right: 8px;
         }
     </style>
 </head>
 <body>
-    <!-- 粒子背景容器 -->
-    <div id="particles-js"></div>
+    <div class="header">
+        <h1><i class="fas fa-database"></i> Oracle 视图生成器</h1>
+        <p>输入您的数据库用户名、视图名称和SQL查询语句，系统将自动生成正确的创建视图SQL命令</p>
+        
+        <div class="features">
+            <div class="feature"><i class="fas fa-check-circle"></i> 生成正确的CREATE VIEW语法</div>
+            <div class="feature"><i class="fas fa-check-circle"></i> 支持OR REPLACE选项</div>
+            <div class="feature"><i class="fas fa-check-circle"></i> 支持FORCE选项</div>
+            <div class="feature"><i class="fas fa-check-circle"></i> 自动语法高亮</div>
+        </div>
+    </div>
     
     <div class="container">
         <!-- 左侧输入面板 -->
         <div class="panel left-panel">
             <div class="panel-header">
-                <i class="fas fa-database"></i>
-                <h2>Oracle 视图生成器</h2>
+                <h2><i class="fas fa-cog"></i> 配置视图参数</h2>
+            </div>
+            
+            <div class="info">
+                <i class="fas fa-info-circle"></i> 请确保您有创建视图的权限，视图名称需符合Oracle命名规范
             </div>
             
             <div class="input-group">
                 <label for="username"><i class="fas fa-user"></i> 用户名</label>
-                <input type="text" id="username" placeholder="输入数据库用户名 (例如: SYSTEM)">
+                <input type="text" id="username" placeholder="输入数据库用户名 (例如: HR)">
             </div>
             
             <div class="input-group">
                 <label for="viewname"><i class="fas fa-table"></i> 视图名</label>
-                <input type="text" id="viewname" placeholder="输入视图名称 (例如: EMPLOYEE_VIEW)">
+                <input type="text" id="viewname" placeholder="输入视图名称 (例如: EMPLOYEE_DETAILS_VIEW)">
             </div>
             
             <div class="input-group">
                 <label for="sql"><i class="fas fa-code"></i> SQL 查询语句</label>
-                <textarea id="sql" placeholder="输入完整的SQL查询语句&#10;例如: SELECT employee_id, first_name, last_name FROM employees WHERE department_id = 20"></textarea>
+                <textarea id="sql" placeholder="输入完整的SQL查询语句&#10;例如: SELECT employee_id, first_name, last_name, department_name, salary FROM employees e JOIN departments d ON e.department_id = d.department_id"></textarea>
+            </div>
+            
+            <div class="options">
+                <div class="option-group">
+                    <input type="checkbox" id="replace" checked>
+                    <label for="replace">使用 OR REPLACE</label>
+                </div>
+                <div class="option-group">
+                    <input type="checkbox" id="force">
+                    <label for="force">使用 FORCE</label>
+                </div>
+                <div class="option-group">
+                    <input type="checkbox" id="readonly">
+                    <label for="readonly">WITH READ ONLY</label>
+                </div>
             </div>
             
             <button class="generate-btn" id="generate">
@@ -282,65 +417,71 @@
         <!-- 右侧结果面板 -->
         <div class="panel right-panel">
             <div class="panel-header">
-                <i class="fas fa-file-code"></i>
-                <h2>生成的SQL语句</h2>
+                <h2><i class="fas fa-terminal"></i> 生成的SQL语句</h2>
             </div>
             
             <div class="result-container" id="result">
                 <div class="result-placeholder">
-                    // 生成的SQL将显示在此处
-                    // 在左侧填写信息并点击生成按钮
+                    <div>
+                        <i class="fas fa-arrow-left" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <p>在左侧填写信息<br>点击"生成视图SQL"按钮</p>
+                    </div>
                 </div>
+            </div>
+            
+            <div class="info" style="margin-top: 20px;">
+                <i class="fas fa-lightbulb"></i> 使用提示：在Oracle SQL Developer或SQL*Plus中执行生成的SQL语句即可创建视图
             </div>
         </div>
     </div>
     
     <div class="footer">
-        Oracle 视图生成器 v1.0 | 科技版 | © 2023 数据库工具
+        Oracle 视图生成器 v2.0 | 专业版 | © 2023 数据库工具 | 已修复SQL生成问题
     </div>
 
-    <!-- 粒子背景库 -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        // 初始化粒子背景
-        particlesJS("particles-js", {
-            particles: {
-                number: { value: 80, density: { enable: true, value_area: 800 } },
-                color: { value: "#00ffff" },
-                shape: { type: "circle" },
-                opacity: { value: 0.3, random: true },
-                size: { value: 3, random: true },
-                move: {
-                    enable: true,
-                    speed: 1,
-                    direction: "none",
-                    random: true,
-                    straight: false,
-                    out_mode: "out"
-                }
-            },
-            interactivity: {
-                detect_on: "canvas",
-                events: {
-                    onhover: { enable: true, mode: "repulse" },
-                    onclick: { enable: true, mode: "push" }
-                }
-            }
-        });
-        
         // 生成SQL功能
         document.getElementById('generate').addEventListener('click', function() {
             const username = document.getElementById('username').value.trim();
             const viewname = document.getElementById('viewname').value.trim();
-            const sql = document.getElementById('sql').value.trim();
+            let sql = document.getElementById('sql').value.trim();
             
             if (!username || !viewname || !sql) {
-                alert('请填写所有字段！');
+                alert('请填写所有必填字段！');
                 return;
             }
             
-            // 生成视图创建语句
-            const viewSQL = `CREATE OR REPLACE VIEW ${username}.${viewname} AS\n${sql};`;
+            // 获取选项
+            const replace = document.getElementById('replace').checked;
+            const force = document.getElementById('force').checked;
+            const readonly = document.getElementById('readonly').checked;
+            
+            // 清理SQL语句：去掉末尾分号（如果有）
+            if (sql.endsWith(';')) {
+                sql = sql.substring(0, sql.length - 1);
+            }
+            
+            // 生成视图创建语句（正确的Oracle语法）
+            let viewSQL = '';
+            
+            if (replace) {
+                viewSQL += 'CREATE OR REPLACE ';
+            } else {
+                viewSQL += 'CREATE ';
+            }
+            
+            if (force) {
+                viewSQL += 'FORCE ';
+            }
+            
+            viewSQL += `VIEW ${username}.${viewname} AS\n`;
+            viewSQL += sql;
+            
+            if (readonly) {
+                viewSQL += '\nWITH READ ONLY';
+            }
+            
+            viewSQL += ';';
             
             // 语法高亮处理
             const highlightedSQL = highlightSQL(viewSQL);
@@ -360,7 +501,7 @@
                 'VALUES', 'UPDATE', 'SET', 'DELETE', 'TRUNCATE', 'TABLE', 'ALTER',
                 'ADD', 'MODIFY', 'DROP', 'COLUMN', 'PRIMARY', 'KEY', 'FOREIGN', 'REFERENCES',
                 'INDEX', 'UNIQUE', 'CHECK', 'DEFAULT', 'CONSTRAINT', 'CASCADE', 'COMMIT',
-                'ROLLBACK', 'SAVEPOINT', 'GRANT', 'REVOKE'
+                'ROLLBACK', 'SAVEPOINT', 'GRANT', 'REVOKE', 'FORCE', 'WITH', 'READ', 'ONLY'
             ];
             
             // 函数列表
@@ -387,6 +528,9 @@
                 highlighted = highlighted.replace(regex, `<span class="function">${func}</span>`);
             });
             
+            // 字符串高亮
+            highlighted = highlighted.replace(/'[^']*'/g, '<span class="string">$&</span>');
+            
             // 对象名高亮（用户名和视图名）
             const username = document.getElementById('username').value.trim();
             const viewname = document.getElementById('viewname').value.trim();
@@ -399,6 +543,16 @@
             
             return highlighted;
         }
+        
+        // 示例数据填充
+        document.addEventListener('DOMContentLoaded', function() {
+            // 演示时自动填充一些数据
+            setTimeout(() => {
+                document.getElementById('username').value = 'HR';
+                document.getElementById('viewname').value = 'EMP_DETAILS_VIEW';
+                document.getElementById('sql').value = 'SELECT \n    e.employee_id, \n    e.first_name || \' \' || e.last_name AS full_name,\n    d.department_name,\n    e.salary,\n    j.job_title\nFROM employees e\nJOIN departments d ON e.department_id = d.department_id\nJOIN jobs j ON e.job_id = j.job_id\nWHERE e.salary > 5000';
+            }, 500);
+        });
     </script>
 </body>
 </html>
